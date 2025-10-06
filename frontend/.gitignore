@@ -1,0 +1,31 @@
+# ------------------------------------
+# Node/Vite/React Ignored Files
+# ------------------------------------
+
+# Dependency directories
+/node_modules
+/npm-debug.log
+
+# Build output directories
+/dist
+/build
+/out
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# npm/yarn cache
+.npm
+.yarn-cache
+
+# Vite-specific files
+.vite/

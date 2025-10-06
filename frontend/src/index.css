@@ -1,0 +1,13 @@
+/* frontend/src/index.css */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Optional custom styles */
+body {
+    background-color: #f8f9fa;
+}
+.navbar {
+    margin-bottom: 20px;
+}
+.container {
+    padding-top: 20px;
+}

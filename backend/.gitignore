@@ -1,0 +1,31 @@
+# ------------------------------------
+# Node/Express Ignored Files
+# ------------------------------------
+
+# Dependency directories
+/node_modules
+
+# Build/Transpiled files (if using Babel/TypeScript)
+/dist
+/build
+/out
+
+# Log files
+*.log
+npm-debug.log*
+
+# Environment files
+# NEVER commit sensitive data like database credentials!
+.env
+.env.development
+.env.production
+.env.local
+
+# MongoDB-specific files (if applicable)
+*.session
+*.sublime-project
+*.sublime-workspace
+
+# Editor metadata
+.vscode/
+.idea/

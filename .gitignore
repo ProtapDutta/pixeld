@@ -1,0 +1,19 @@
+# ------------------------------------
+# Global/OS Ignored Files
+# ------------------------------------
+
+# Dependency folders
+/frontend/node_modules
+/backend/node_modules
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE files
+.vscode
+.idea
+
+# Build/Artifacts
+/frontend/dist
+/backend/dist
