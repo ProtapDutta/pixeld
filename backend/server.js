@@ -1,4 +1,4 @@
-// backend/server.js 
+// backend/server.js (FINAL DEPLOYMENT FIX)
 
 import express from 'express';
 import dotenv from 'dotenv';
@@ -16,20 +16,27 @@ initializeCloudinary();
 
 const app = express();
 
-// 💡 REFINEMENT: Use CLIENT_URL from your .env for local CORS
+// 💡 DYNAMIC CORS CONFIGURATION FOR LOCAL AND PRODUCTION
+// This uses a single environment variable, which MUST be set on Vercel.
+const deployedFrontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL;
+
 const allowedOrigins = [
-    process.env.CLIENT_URL,      // Reads http://localhost:5173 from your .env
-    'http://localhost:3000',     // Common fallback local port
-    process.env.FRONTEND_URL,    // This will be undefined locally (which is fine)
+    // 1. Local Development URLs
+    'http://localhost:5173', 
+    'http://localhost:3000', 
+    // 2. Deployed Production URL (MUST be set in Vercel Environment Variables)
+    deployedFrontendUrl,
 ];
 
 const corsOptions = {
     origin: (origin, callback) => {
-        // If the origin is not present (e.g., local server-to-server or script requests) 
-        // OR it's in our list of allowed origins, allow it.
+        // If the request origin is undefined (e.g., local server-to-server or scripts), allow it.
+        // OR if the origin is in our allowed list, allow it.
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            // Log the disallowed origin for debugging
+            console.error(`CORS rejected origin: ${origin}`); 
             callback(new Error(`CORS policy restricts access for origin: ${origin}`));
         }
     },
