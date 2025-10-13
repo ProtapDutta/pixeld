@@ -30,11 +30,12 @@ const Dashboard = () => {
     // --- PAGINATION, SEARCH & SORT STATE ---
     const [searchTerm, setSearchTerm] = useState(''); 
     const [currentPage, setCurrentPage] = useState(1); 
-    const [limit, setLimit] = useState(20); 
+    // 💡 FIX: Changed default limit from 20 to 10
+    const [limit, setLimit] = useState(10); 
     const [totalCount, setTotalCount] = useState(0); 
     const [totalPages, setTotalPages] = useState(1); 
     
-    // 💡 NEW SORTING STATE
+    // NEW SORTING STATE
     const [sortBy, setSortBy] = useState('createdAt');
     const [sortDirection, setSortDirection] = useState('desc');
 
@@ -62,9 +63,9 @@ const Dashboard = () => {
                 
             const res = await api.get(url);
             
-            const { files, totalCount, totalPages, page: returnedPage, limit: returnedLimit } = res.data;
+            const { files: fetchedFiles, totalCount, totalPages, page: returnedPage, limit: returnedLimit } = res.data;
             
-            setFiles(files);
+            setFiles(fetchedFiles);
             setTotalCount(totalCount);
             setTotalPages(totalPages);
             setCurrentPage(returnedPage); 
@@ -79,7 +80,7 @@ const Dashboard = () => {
         // Run fetch on mount and whenever dependencies change
         fetchFiles(searchTerm, currentPage, limit);
         setSelectedFileIds([]); // Clear selection on fetch
-    }, [fetchFiles, searchTerm, currentPage, limit, sortBy, sortDirection]);
+    }, [fetchFiles]);
 
     // -------------------------------------------------------------------------
     // 2. FILE CONTROL HANDLERS (Search, Limit, Page, Sort)
@@ -90,7 +91,6 @@ const Dashboard = () => {
         setCurrentPage(1);
     };
 
-    // 💡 FIX: handlePageChange function definition
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage);
@@ -107,7 +107,6 @@ const Dashboard = () => {
         setCurrentPage(1);
     };
 
-    // 💡 NEW: Handler for sorting control changes
     const handleSortChange = (e) => {
         const [newSortBy, newSortDirection] = e.target.value.split(':');
         setSortBy(newSortBy);
@@ -116,7 +115,7 @@ const Dashboard = () => {
     };
 
     // -------------------------------------------------------------------------
-    // 3. UPLOAD LOGIC (Moved from old dashboard)
+    // 3. UPLOAD LOGIC
     // -------------------------------------------------------------------------
 
     const processFilesUpload = async (filesToUpload) => {
@@ -186,6 +185,7 @@ const Dashboard = () => {
         const results = await Promise.allSettled(uploadPromises);
 
         setUploading(false);
+        // Ensure the fetch call uses the current (and now corrected) default limit
         fetchFiles(searchTerm, currentPage, limit); 
         
         const successfulUploads = results.filter(r => r.status === 'fulfilled').length;
@@ -203,13 +203,24 @@ const Dashboard = () => {
     // UPLOAD HANDLERS
     const handleFileUpload = (e) => {
         e.preventDefault();
-        const fileInput = document.getElementById('file-upload-input');
-        const filesToUpload = Array.from(fileInput.files);
+        
+        let filesToUpload = [];
+        if (e.target && e.target.files) {
+            filesToUpload = Array.from(e.target.files);
+        } else {
+            const fileInput = document.getElementById('file-upload-input');
+            filesToUpload = Array.from(fileInput.files);
+        }
+
         if (filesToUpload.length === 0) {
             toast.error('Please select at least one file.');
             return;
         }
-        fileInput.value = null; 
+        
+        if (e.target) {
+            e.target.value = null; 
+        }
+
         processFilesUpload(filesToUpload);
     };
 
@@ -331,22 +342,50 @@ const Dashboard = () => {
                 handleDrop={handleDrop}
             />
 
-            <div className="row">
-                <div className="col-12">
+            {/* RESPONSIVE CONTROLS ROW */}
+            <div className="row g-3 align-items-center mb-4 mt-3">
+                
+                {/* === COLUMN 1: SEARCH BAR === */}
+                <div className="col-12 col-md-4">
+                    <div className="input-group">
+                        <input 
+                            type="text" 
+                            className="form-control" 
+                            placeholder="Search files..."
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                        />
+                        <button 
+                            className="btn btn-outline-secondary" 
+                            type="button" 
+                            onClick={handleClearSearch}
+                            disabled={!searchTerm}
+                        >
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                
+                {/* === COLUMN 2: OTHER CONTROLS === */}
+                <div className="col-12 col-md-8 d-flex flex-wrap justify-content-md-end justify-content-start align-items-center">
                     <FileListControls 
                         totalCount={totalCount}
                         selectedFileCount={selectedFileIds.length}
                         uploading={uploading}
                         limit={limit}
-                        searchTerm={searchTerm}
                         sortBy={sortBy}
                         sortDirection={sortDirection}
                         onLimitChange={handleLimitChange}
-                        onSearchChange={handleSearchChange}
-                        onClearSearch={handleClearSearch}
                         onSortChange={handleSortChange}
                         onBulkDelete={handleBulkDelete}
                     />
+                </div>
+            </div>
+            {/* END RESPONSIVE CONTROLS ROW */}
+
+
+            <div className="row">
+                <div className="col-12">
                     
                     <FileTable 
                         files={files}
@@ -361,7 +400,7 @@ const Dashboard = () => {
                         handleShare={handleShare}
                         handleRename={handleRename}
                         handleDelete={handleDelete}
-                        handlePageChange={handlePageChange} // 💡 Passed the missing function
+                        handlePageChange={handlePageChange} 
                     />
                 </div>
             </div>

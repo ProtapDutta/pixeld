@@ -1,4 +1,4 @@
-// backend/middleware/uploadMiddleware.js
+// backend/middleware/uploadMiddleware.js (FULLY FIXED AND SYNCED)
 
 import multer from 'multer';
 import { Readable } from 'stream';
@@ -17,13 +17,7 @@ const upload = multer({
     limits: { 
         fileSize: 10 * 1024 * 1024 // 10MB limit per file
     },
-    fileFilter: (req, file, cb) => {
-        // Allowed File Types
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif|pdf|doc|docx|xlsx|pptx|txt|zip|mp4|mov|avi)$/i)) {
-            return cb(new Error('Unsupported file type.'), false);
-        }
-        cb(null, true);
-    }
+    // 💡 FIX: REMOVED THE fileFilter RESTRICTION. All file types are now accepted.
 });
 
 // Helper function to upload a buffer stream to Cloudinary

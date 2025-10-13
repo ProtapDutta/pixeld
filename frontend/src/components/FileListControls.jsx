@@ -2,11 +2,12 @@ import React from 'react';
 
 const FileListControls = ({ 
     totalCount, selectedFileCount, uploading, 
-    limit, searchTerm, sortBy, sortDirection,
-    onLimitChange, onSearchChange, onClearSearch, onSortChange, onBulkDelete 
+    limit, sortBy, sortDirection,
+    onLimitChange, onSortChange, onBulkDelete 
 }) => {
     return (
-        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        // Uses flex-wrap to ensure controls move to the next line if space runs out
+        <div className="d-flex align-items-center flex-wrap"> 
             
             {/* Title and Bulk Delete */}
             <div className="d-flex align-items-center mb-2 me-3">
@@ -20,7 +21,7 @@ const FileListControls = ({
                 </button>
             </div>
             
-            {/* Search, Limit, and Sort Selects */}
+            {/* Limit and Sort Selects (Only remaining controls) */}
             <div className="d-flex align-items-center mb-2">
                 {/* Limit Select */}
                 <select 
@@ -34,12 +35,12 @@ const FileListControls = ({
                     <option value="30">30 / Page</option>
                 </select>
                 
-                {/* 💡 SORTING SELECT */}
+                {/* SORTING SELECT */}
                 <select 
-                    className="form-select form-select-sm me-2" 
+                    className="form-select form-select-sm" 
                     style={{ width: 'auto' }}
-                    value={`${sortBy}:${sortDirection}`} // Combines both state values
-                    onChange={onSortChange}          
+                    value={`${sortBy}:${sortDirection}`} 
+                    onChange={onSortChange} 
                 >
                     <option disabled>Sort By:</option>
                     <option value="createdAt:desc">Date Uploaded (Newest)</option>
@@ -50,30 +51,6 @@ const FileListControls = ({
                     <option value="size:asc">Size (Smallest)</option>
                     <option value="updatedAt:desc">Last Modified (Newest)</option>
                 </select>
-
-                {/* Search Input with Clear Button */}
-                <div className="input-group" style={{ width: '250px' }}>
-                    <span className="input-group-text">🔍</span>
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Search file name..."
-                        value={searchTerm}
-                        onChange={onSearchChange}
-                        disabled={uploading}
-                    />
-                    {searchTerm && ( 
-                        <button
-                            className="btn btn-outline-secondary"
-                            type="button"
-                            onClick={onClearSearch}
-                            disabled={uploading}
-                            style={{ borderLeft: 0 }}
-                        >
-                            &times;
-                        </button>
-                    )}
-                </div>
             </div>
         </div>
     );

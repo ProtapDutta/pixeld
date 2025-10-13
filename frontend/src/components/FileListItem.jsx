@@ -1,4 +1,6 @@
 import React from 'react';
+// 💡 CRITICAL CHANGE: Import Bootstrap components from react-bootstrap
+import Dropdown from 'react-bootstrap/Dropdown';
 
 const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -39,55 +41,55 @@ const FileListItem = ({ file, isSelected, toggleSelection, handleView, handleSha
             key={file._id} 
             className={`list-group-item d-flex justify-content-between align-items-center shadow-sm py-3 my-2 rounded ${isSelected ? 'list-group-item-secondary' : ''}`}
         >
-            <div className="d-flex align-items-center flex-grow-1">
+            
+            {/* 1. File Info Section: Takes up maximum space */}
+            <div 
+                className="d-flex align-items-center flex-grow-1" 
+                onClick={() => toggleSelection(file._id)} 
+                style={{ cursor: 'pointer', minWidth: 0 }}
+            >
                 <input 
                     type="checkbox" 
                     className="form-check-input me-3" 
                     checked={isSelected} 
                     onChange={() => toggleSelection(file._id)}
                     style={{ cursor: 'pointer', transform: 'scale(1.3)' }}
+                    onClick={(e) => e.stopPropagation()} 
                 />
-                <span onClick={() => handleView(file)}>
+                <span onClick={() => handleView(file)} className="me-3"> 
                     {renderFilePreview(file)}
                 </span>
+                
+                {/* FILENAME CONTAINER: Uses flex-grow-1 and relies on text-truncate */}
                 <div 
-                    className="flex-grow-1 align-self-center"
-                    style={{cursor: 'pointer'}} 
-                    onClick={() => toggleSelection(file._id)} 
+                    className="align-self-center flex-grow-1"
+                    style={{ minWidth: 0 }} 
                 >
-                    <span className="fw-bold">{file.fileName}</span> 
+                    <span className="fw-bold d-block text-truncate">{file.fileName}</span> 
                     <small className="text-muted d-block">
                         {formatFileSize(file.size)} | {new Date(file.createdAt).toLocaleDateString()}
                     </small>
                 </div>
             </div>
             
-            <div className="d-flex">
-                <button 
-                    className="btn btn-sm btn-secondary me-2" 
-                    onClick={(e) => { e.stopPropagation(); handleRename(file); }}
-                >
-                    Rename
-                </button>
-                <button 
-                    className="btn btn-sm btn-info me-2 text-white" 
-                    onClick={(e) => { e.stopPropagation(); handleShare(file); }}
-                >
-                    Share
-                </button>
-                <button 
-                    className="btn btn-sm btn-primary me-2" 
-                    onClick={(e) => { e.stopPropagation(); handleView(file); }}
-                >
-                    View
-                </button>
-                <button 
-                    className="btn btn-sm btn-danger" 
-                    onClick={(e) => { e.stopPropagation(); handleDelete(file._id); }}
-                >
-                    Delete
-                </button>
-            </div>
+            {/* 2. Action Buttons: CONSOLIDATED INTO REACT-BOOTSTRAP DROPDOWN */}
+            <Dropdown align="end" onClick={(e) => e.stopPropagation()}>
+                {/* The Dropdown.Toggle is the button that opens the menu */}
+                <Dropdown.Toggle variant="light" size="sm" id={`dropdown-basic-${file._id}`} className="p-1">
+                    <span className="fs-5">⋮</span> {/* Three vertical dots (Kebab menu icon) */}
+                </Dropdown.Toggle>
+
+                {/* The Dropdown.Menu contains the list of actions */}
+                <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => handleView(file)}>View</Dropdown.Item>
+                    <Dropdown.Item onClick={() => handleRename(file)}>Rename</Dropdown.Item>
+                    <Dropdown.Item onClick={() => handleShare(file)}>Share</Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item className="text-danger" onClick={() => handleDelete(file._id)}>
+                        Delete
+                    </Dropdown.Item>
+                </Dropdown.Menu>
+            </Dropdown>
         </li>
     );
 };

@@ -2,9 +2,12 @@
 
 import axios from 'axios';
 
+// 💡 FIX: Use the VITE_API_BASE_URL (your deployed backend URL) for production,
+// falling back to localhost for development.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-    // Use the port where your backend is running
-    baseURL: 'http://localhost:5000/api', 
+    baseURL: API_BASE_URL, 
     headers: {
         'Content-Type': 'application/json',
     },
