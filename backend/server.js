@@ -1,4 +1,4 @@
-// backend/server.js (FINAL DEPLOYMENT FIX)
+// backend/server.js (FINAL DEPLOYMENT-READY VERSION)
 
 import express from 'express';
 import dotenv from 'dotenv';
@@ -16,8 +16,17 @@ initializeCloudinary();
 
 const app = express();
 
+// 💡 NEW: Simple Health Check Route to handle 'Cannot GET /'
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: 'Pixel Drive API is running successfully!',
+        status: 'OK',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 // 💡 DYNAMIC CORS CONFIGURATION FOR LOCAL AND PRODUCTION
-// This uses a single environment variable, which MUST be set on Vercel.
+// Uses either FRONTEND_URL or CLIENT_URL (whichever is set in Vercel/local .env)
 const deployedFrontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL;
 
 const allowedOrigins = [
@@ -30,12 +39,10 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: (origin, callback) => {
-        // If the request origin is undefined (e.g., local server-to-server or scripts), allow it.
-        // OR if the origin is in our allowed list, allow it.
+        // Allow requests with no origin (e.g., cURL, server-to-server) or from allowed origins.
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
-            // Log the disallowed origin for debugging
             console.error(`CORS rejected origin: ${origin}`); 
             callback(new Error(`CORS policy restricts access for origin: ${origin}`));
         }
