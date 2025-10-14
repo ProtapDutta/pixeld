@@ -26,7 +26,7 @@ const app = express();
 // 💡 NEW: Simple Health Check Route to handle 'Cannot GET /'
 app.get('/', (req, res) => {
     res.status(200).json({
-        message: 'Pixel Drive API is running successfully! (Checking CORS variable...)', 
+        message: 'Pixel Drive API is running successfully! CORS CHECK V2.0', 
         status: 'OK',
         environment: process.env.NODE_ENV || 'development'
     });
