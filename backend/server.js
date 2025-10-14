@@ -1,4 +1,4 @@
-// backend/server.js (FINAL DEPLOYMENT-READY VERSION)
+// backend/server.js (WITH DEBUG LOGGING)
 
 import express from 'express';
 import dotenv from 'dotenv';
@@ -14,12 +14,19 @@ dotenv.config();
 connectDB();
 initializeCloudinary(); 
 
+// 💡 NEW DEBUG LOGGING SECTION
+console.log('--- VERCEL ENV CHECK ---');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('FRONTEND_URL (Vercel Setting):', process.env.FRONTEND_URL); 
+console.log('------------------------');
+// -----------------------------------
+
 const app = express();
 
 // 💡 NEW: Simple Health Check Route to handle 'Cannot GET /'
 app.get('/', (req, res) => {
     res.status(200).json({
-        message: 'Pixel Drive API is running successfully!',
+        message: 'Pixel Drive API is running successfully! (Checking CORS variable...)', 
         status: 'OK',
         environment: process.env.NODE_ENV || 'development'
     });
