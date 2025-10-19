@@ -6,7 +6,8 @@ import { toast } from 'react-toastify';
 // Removed unused imports: api, Spinner, useEffect
 
 // 💡 CRITICAL: Update this to match your backend's base URL (e.g., VITE_API_URL)
-const SERVER_URL = 'http://localhost:5000'; 
+const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 
 const ShareModal = ({ file, show, onClose }) => {
     const [copied, setCopied] = useState(false);
