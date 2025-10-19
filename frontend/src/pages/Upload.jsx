@@ -1,10 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import { Button, Form, ProgressBar, Card, ListGroup } from 'react-bootstrap';
-import toast from 'react-hot-toast';
+import React, { useState, useCallback, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import UploadArea from '../components/UploadArea';
 import api from '../api/axios.js';
 
-const VERCEL_UPLOAD_LIMIT = 4.5 * 1024 * 1024; // 4.5MB in bytes
+const VERCEL_UPLOAD_LIMIT = 4.5 * 1024 * 1024;
 
 const initialFileStatus = {
     progress: 0,
@@ -17,8 +16,9 @@ const Upload = () => {
     const [filesToUpload, setFilesToUpload] = useState([]);
     const [fileStatuses, setFileStatuses] = useState({});
     const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef();
 
-    // Handles dropped files or file input selection
+    // Handles dropped files or file input selection (automatic upload)
     const handleFileSelection = useCallback(async (files) => {
         let tooLarge = false;
         const filteredFiles = Array.from(files).filter(file => {
@@ -30,7 +30,6 @@ const Upload = () => {
         });
 
         if (tooLarge) toast.error('Each file must be under 4.5MB (Vercel limit).');
-
         if (filteredFiles.length === 0) return;
 
         setFilesToUpload(filteredFiles);
@@ -42,11 +41,9 @@ const Upload = () => {
             return newStatuses;
         });
 
-        // Automatically trigger upload for the new files
         await handleFileUpload(filteredFiles);
     }, []);
 
-    // The manual dropzone handler
     const handleDrop = useCallback((e) => {
         e.preventDefault();
         const files = Array.from(e.dataTransfer.files);
@@ -117,6 +114,7 @@ const Upload = () => {
         // Clear the file input and statuses after all uploads finish
         setFilesToUpload([]);
         setFileStatuses({});
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleDragOver = (e) => e.preventDefault();
@@ -133,11 +131,11 @@ const Upload = () => {
                     status: fileStatuses[file.name]?.status || 'Pending',
                     progress: fileStatuses[file.name]?.progress || 0
                 }))}
-                handleFileUpload={handleFileUpload}
                 handleDragOver={handleDragOver}
                 handleDragLeave={handleDragLeave}
                 handleDrop={handleDrop}
                 handleFileSelection={handleFileSelection}
+                fileInputRef={fileInputRef}
             />
         </div>
     );

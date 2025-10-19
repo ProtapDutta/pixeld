@@ -43,13 +43,20 @@ const UploadStatusItem = ({ file }) => {
 };
 
 const UploadArea = ({
-    uploading, uploadingFiles, handleFileUpload,
-    handleDragOver, handleDragLeave, handleDrop
+    uploading, uploadingFiles,
+    handleDragOver, handleDragLeave, handleDrop,
+    handleFileSelection, fileInputRef
 }) => {
+
+    // Calls both selection and input clearing logic
+    const onInputChange = (e) => {
+        handleFileSelection(e.target.files);
+        e.target.value = '';
+    };
+
     return (
         <div className="row mb-4">
             <div className="col-12">
-                {/* Warning about file size */}
                 <div
                     className="alert alert-warning text-center mb-3"
                     style={{ fontWeight: 600, fontSize: '1rem' }}
@@ -68,21 +75,17 @@ const UploadArea = ({
                         <small className="text-muted">Drag & Drop files anywhere in this box or click to select.</small>
                     </div>
                     <div className="card-body">
-                        <form onSubmit={handleFileUpload} className="d-flex flex-column">
-                            <div className="d-flex align-items-center mb-3">
-                                <input
-                                    type="file"
-                                    className="form-control me-2"
-                                    id="file-upload-input"
-                                    multiple
-                                    disabled={uploading}
-                                    required
-                                />
-                                <button type="submit" className="btn btn-success" disabled={uploading}>
-                                    {uploading ? 'Uploading...' : 'Upload File(s)'}
-                                </button>
-                            </div>
-                        </form>
+                        <div className="d-flex align-items-center mb-3">
+                            <input
+                                type="file"
+                                className="form-control me-2"
+                                id="file-upload-input"
+                                multiple
+                                disabled={uploading}
+                                onChange={onInputChange}
+                                ref={fileInputRef}
+                            />
+                        </div>
                         {uploadingFiles.length > 0 && (
                             <div className="mt-3">
                                 <h6 className="mb-2">Active Uploads:</h6>
