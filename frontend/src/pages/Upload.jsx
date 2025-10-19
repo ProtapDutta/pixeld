@@ -18,13 +18,8 @@ const Upload = () => {
     const [fileStatuses, setFileStatuses] = useState({});
     const [uploading, setUploading] = useState(false);
 
-    const handleDrop = useCallback((e) => {
-        e.preventDefault();
-        const files = Array.from(e.dataTransfer.files);
-        handleFileSelection(files);
-    }, []);
-
-    const handleFileSelection = useCallback((files) => {
+    // Handles dropped files or file input selection
+    const handleFileSelection = useCallback(async (files) => {
         let tooLarge = false;
         const filteredFiles = Array.from(files).filter(file => {
             if (file.size > VERCEL_UPLOAD_LIMIT) {
@@ -36,84 +31,92 @@ const Upload = () => {
 
         if (tooLarge) toast.error('Each file must be under 4.5MB (Vercel limit).');
 
-        setFilesToUpload(prevFiles => {
-            const existing = new Set(prevFiles.map(f => f.name));
-            const uniqueFiles = [...prevFiles, ...filteredFiles.filter(f => !existing.has(f.name))];
-            uniqueFiles.forEach(f =>
-                setFileStatuses(prev => ({
-                    ...prev,
-                    [f.name]: prev[f.name] || { ...initialFileStatus }
-                }))
-            );
-            return uniqueFiles;
+        if (filteredFiles.length === 0) return;
+
+        setFilesToUpload(filteredFiles);
+        setFileStatuses(prev => {
+            const newStatuses = { ...prev };
+            filteredFiles.forEach(f => {
+                newStatuses[f.name] = initialFileStatus;
+            });
+            return newStatuses;
         });
+
+        // Automatically trigger upload for the new files
+        await handleFileUpload(filteredFiles);
     }, []);
 
-    const handleFileUpload = async (e) => {
+    // The manual dropzone handler
+    const handleDrop = useCallback((e) => {
         e.preventDefault();
-        if (filesToUpload.length === 0) return toast.error("Please select files to upload.");
+        const files = Array.from(e.dataTransfer.files);
+        handleFileSelection(files);
+    }, [handleFileSelection]);
 
+    // Handles the actual upload logic
+    const handleFileUpload = async (files = filesToUpload) => {
+        if (files.length === 0) return toast.error("Please select files to upload.");
         setUploading(true);
 
-        const filesToProcess = filesToUpload.filter(file =>
-            fileStatuses[file.name]?.status !== 'Success'
-        );
+        await Promise.all(
+            files.map(file => {
+                setFileStatuses(prev => ({
+                    ...prev,
+                    [file.name]: { ...initialFileStatus, status: 'Uploading' }
+                }));
 
-        await Promise.all(filesToProcess.map(file => {
-            setFileStatuses(prev => ({
-                ...prev,
-                [file.name]: { ...initialFileStatus, status: 'Uploading' }
-            }));
-            const formData = new FormData();
-            formData.append('file', file);
+                const formData = new FormData();
+                formData.append('file', file);
 
-            return api.post('/files/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                onUploadProgress: progressEvent => {
-                    const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                    setFileStatuses(prev => ({
-                        ...prev,
-                        [file.name]: { ...prev[file.name], progress: percent, status: 'Uploading' }
-                    }));
-                }
-            })
-                .then(response => {
-                    setFileStatuses(prev => ({
-                        ...prev,
-                        [file.name]: {
-                            ...prev[file.name],
-                            progress: 100,
-                            status: 'Success',
-                            id: response.data._id,
-                            error: null
-                        }
-                    }));
-                    toast.success(`${file.name}: Upload succeeded!`);
-                })
-                .catch(error => {
-                    let errMsg = error.response?.data?.message || 'Upload failed.';
-                    if (
-                        error.response?.status === 413 ||
-                        errMsg.toLowerCase().includes('payload too large') ||
-                        errMsg.toLowerCase().includes('file too large')
-                    ) {
-                        errMsg = `${file.name}: File is too large (Vercel limit: 4.5MB)`;
+                return api.post('/files/upload', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    onUploadProgress: progressEvent => {
+                        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setFileStatuses(prev => ({
+                            ...prev,
+                            [file.name]: { ...prev[file.name], progress: percent, status: 'Uploading' }
+                        }));
                     }
-                    setFileStatuses(prev => ({
-                        ...prev,
-                        [file.name]: {
-                            ...prev[file.name],
-                            status: 'Error',
-                            error: errMsg,
-                            progress: 0
+                })
+                    .then(response => {
+                        setFileStatuses(prev => ({
+                            ...prev,
+                            [file.name]: {
+                                ...prev[file.name],
+                                progress: 100,
+                                status: 'Success',
+                                id: response.data._id,
+                                error: null
+                            }
+                        }));
+                        toast.success(`${file.name}: Upload succeeded!`);
+                    })
+                    .catch(error => {
+                        let errMsg = error.response?.data?.message || 'Upload failed.';
+                        if (
+                            error.response?.status === 413 ||
+                            errMsg.toLowerCase().includes('payload too large') ||
+                            errMsg.toLowerCase().includes('file too large')
+                        ) {
+                            errMsg = `${file.name}: File is too large (Vercel limit: 4.5MB)`;
                         }
-                    }));
-                    toast.error(errMsg);
-                });
-        }));
+                        setFileStatuses(prev => ({
+                            ...prev,
+                            [file.name]: {
+                                ...prev[file.name],
+                                status: 'Error',
+                                error: errMsg,
+                                progress: 0
+                            }
+                        }));
+                        toast.error(errMsg);
+                    });
+            })
+        );
         setUploading(false);
+        // Clear the file input and statuses after all uploads finish
+        setFilesToUpload([]);
+        setFileStatuses({});
     };
 
     const handleDragOver = (e) => e.preventDefault();
@@ -122,7 +125,6 @@ const Upload = () => {
     return (
         <div className="container mt-4">
             <h2 className="mb-4">Upload Files</h2>
-
             <UploadArea
                 uploading={uploading}
                 uploadingFiles={filesToUpload.map(file => ({
@@ -135,9 +137,8 @@ const Upload = () => {
                 handleDragOver={handleDragOver}
                 handleDragLeave={handleDragLeave}
                 handleDrop={handleDrop}
+                handleFileSelection={handleFileSelection}
             />
-
-            {/* Status cards/list gets handled inside your UploadArea already */}
         </div>
     );
 };
