@@ -84,4 +84,5 @@ if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`));
 }
 
-export default app;
+const handler = (req, res) => app(req, res);
+export default handler;
