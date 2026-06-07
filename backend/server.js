@@ -11,7 +11,9 @@ import authRoutes from './routes/authRoutes.js';
 import fileRoutes from './routes/fileRoutes.js';
 
 dotenv.config();
-connectDB();
+connectDB().catch((error) => {
+    console.error('MongoDB connection failed:', error.message || error);
+});
 initializeCloudinary(); 
 
 // 💡 NEW DEBUG LOGGING SECTION
