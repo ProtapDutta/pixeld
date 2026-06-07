@@ -34,7 +34,10 @@ app.get('/', (req, res) => {
 
 // 💡 DYNAMIC CORS CONFIGURATION FOR LOCAL AND PRODUCTION
 // Uses either FRONTEND_URL or CLIENT_URL (whichever is set in Vercel/local .env)
-const deployedFrontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL;
+const deployedFrontendUrl =
+  process.env.FRONTEND_URL ||
+  process.env.CLIENT_URL ||
+  'https://pixeldfront.vercel.app';
 
 const allowedOrigins = [
     // 1. Local Development URLs
